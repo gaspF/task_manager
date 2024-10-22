@@ -16,7 +16,7 @@ class TaskUpdate(BaseModel):
 # Modèle pour retourner une tâche
 class Task(TaskBase):
     id: int
-    completed: bool
+    completed: bool = False
 
     class Config:
-        orm_mode = True
+        from_attributes = True

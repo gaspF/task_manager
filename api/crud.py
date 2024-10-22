@@ -3,7 +3,7 @@ from .models import Task
 from .schemas import TaskCreate, TaskUpdate
 
 def create_task(db: Session, task: TaskCreate):
-    db_task = Task(title=task.title, description=task.description)
+    db_task = Task(**task.model_dump())
     db.add(db_task)
     db.commit()
     db.refresh(db_task)
