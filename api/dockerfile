@@ -3,7 +3,10 @@ FROM python:3.12
 
 WORKDIR /api
 
-COPY . /api
+COPY ./api /api
+COPY ./alembic.ini /alembic.ini
+COPY ./alembic /alembic
 
-RUN pip install --no-cache-dir -r ./api/requirements.txt
+RUN pip install --no-cache-dir -r /api/requirements.txt
 
+EXPOSE 8000
