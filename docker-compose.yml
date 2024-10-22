@@ -1,0 +1,12 @@
+version: '3'
+services:
+  backend:
+    build:
+      context: ./api
+    container_name: task_manager_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api:/api
+    environment:
+      - DATABASE_URL=sqlite:///./tasks.db
