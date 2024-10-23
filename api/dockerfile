@@ -1,7 +1,7 @@
 # Utiliser l'image officielle Python comme base
 FROM python:3.12
 
-WORKDIR /api
+WORKDIR /
 
 COPY ./api /api
 COPY ./alembic.ini /alembic.ini
