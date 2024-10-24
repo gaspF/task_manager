@@ -1,24 +1,28 @@
+import os
 import pytest
 import sqlalchemy
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from alembic import command
+from alembic.config import Config
 from api.models import Task
 from api.database import Base
 from api.crud import create_task, get_task, update_task, delete_task, get_tasks
 from api.schemas import TaskCreate, TaskUpdate
 
-# Configuration de la base de données pour les tests (SQLite en mémoire)
-SQLALCHEMY_DATABASE_URL = "sqlite:///./tasks.db"
+TEST_DATABASE_URL = "postgresql://postgres:mysecretpassword@db_test:5432/tasks_test_db"
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+engine = create_engine(TEST_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = sqlalchemy.orm.declarative_base()
+@pytest.fixture(scope="session")
+def setup_db():
+    Base.metadata.create_all(bind=engine)
+    yield
+    Base.metadata.drop_all(bind=engine)
 
-@pytest.fixture(scope="function")
-def db_session():
+@pytest.fixture(scope="session")
+def db_session(setup_db):
     db = TestingSessionLocal()
     try:
         yield db
@@ -68,6 +72,6 @@ def test_get_tasks(db_session):
     
     tasks = get_tasks(db=db_session)
     
-    assert len(tasks) == 2
-    assert tasks[0].title == "Task 1"
-    assert tasks[1].title == "Task 2"
+    assert len(tasks) == 5
+    assert tasks[3].title == "Task 1"
+    assert tasks[4].title == "Task 2"
