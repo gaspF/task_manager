@@ -4,7 +4,8 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 SQLALCHEMY_DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql://postgres:mysecretpassword@db_dev:5432/tasks_db"
+    "DATABASE_URL",
+    "postgresql://postgres:mysecretpassword@db_dev:5432/tasks_db",
 )
 
 engine = create_engine(SQLALCHEMY_DATABASE_URL)

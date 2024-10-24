@@ -2,7 +2,6 @@ from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
 from api.database import engine, Base, get_db
 from api import crud, schemas
-from api.models import Task
 
 # Créer la base de données
 Base.metadata.create_all(bind=engine)
@@ -34,7 +33,9 @@ def read_task(task_id: int, db: Session = Depends(get_db)):
 
 # Mise à jour d'une tâche
 @app.put("/tasks/{task_id}", response_model=schemas.Task)
-def update_task(task_id: int, task: schemas.TaskUpdate, db: Session = Depends(get_db)):
+def update_task(
+    task_id: int, task: schemas.TaskUpdate, db: Session = Depends(get_db)
+):
     return crud.update_task(db=db, task_id=task_id, task_update=task)
 
 
