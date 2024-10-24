@@ -1,33 +1,47 @@
+import os
 import pytest
 import sqlalchemy
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from alembic import command
+from alembic.config import Config
 from api.main import app, get_db
+from api.models import Base
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./tasks.db"
+TEST_DATABASE_URL = "postgresql://postgres:mysecretpassword@db_test:5432/tasks_test_db"
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+engine = create_engine(TEST_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-Base = sqlalchemy.orm.declarative_base()
+@pytest.fixture(scope="session")
+def setup_db():
+    Base.metadata.create_all(bind=engine)
+    yield
+    Base.metadata.drop_all(bind=engine)
 
-def override_get_db():
+@pytest.fixture(scope="session")
+def db_session(setup_db):
+    db = TestingSessionLocal()
     try:
-        db = TestingSessionLocal()
         yield db
     finally:
         db.close()
 
-app.dependency_overrides[get_db] = override_get_db
+@pytest.fixture(scope="session")
+def client(db_session):
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            db_session.close()
 
-client = TestClient(app)
+    app.dependency_overrides[get_db] = override_get_db
+    return TestClient(app)
 
-sample_task = {"title": "Test Task", "description": "This is a test task"}
+sample_task = {"title": "Test Task", "description": "This is a very very test task"}
 
-def test_create_task():
+def test_create_task(client):
     response = client.post("/tasks/", json=sample_task)
     assert response.status_code == 200
     data = response.json()
@@ -35,7 +49,7 @@ def test_create_task():
     assert data["description"] == sample_task["description"]
     assert "id" in data
 
-def test_read_task():
+def test_read_task(client):
     response = client.post("/tasks/", json=sample_task)
     task_id = response.json()["id"]
     
@@ -46,7 +60,7 @@ def test_read_task():
     assert data["title"] == sample_task["title"]
     assert data["description"] == sample_task["description"]
 
-def test_update_task():
+def test_update_task(client):
     response = client.post("/tasks/", json=sample_task)
     task_id = response.json()["id"]
 
@@ -57,7 +71,7 @@ def test_update_task():
     assert data["id"] == task_id
     assert data["completed"] is True
 
-def test_delete_task():
+def test_delete_task(client):
     response = client.post("/tasks/", json=sample_task)
     task_id = response.json()["id"]
 
