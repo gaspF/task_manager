@@ -1,18 +1,18 @@
-import os
 import pytest
-import sqlalchemy
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from alembic import command
-from alembic.config import Config
 from api.main import app, get_db
 from api.models import Base
 
-TEST_DATABASE_URL = "postgresql://postgres:mysecretpassword@db_test:5432/tasks_test_db"
+TEST_DATABASE_URL = (
+    "postgresql://postgres:mysecretpassword@db_test:5432/tasks_test_db"
+)
 
 engine = create_engine(TEST_DATABASE_URL)
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+TestingSessionLocal = sessionmaker(
+    autocommit=False, autoflush=False, bind=engine
+)
 
 
 @pytest.fixture(scope="session")
@@ -43,7 +43,10 @@ def client(db_session):
     return TestClient(app)
 
 
-sample_task = {"title": "Test Task", "description": "This is a very very test task"}
+sample_task = {
+    "title": "Test Task",
+    "description": "This is a very very test task",
+}
 
 
 def test_create_task(client):
